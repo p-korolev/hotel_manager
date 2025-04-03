@@ -1,6 +1,7 @@
+-- ALL TRIGGERS, FUNCTIONS, QUERIES, VIEWS
 
--- User-Defined Constraints Triggers
--- Constraint: Customers cannot book more than 2 rooms at a time
+
+-- Customers cannot book more than 2 rooms at a time
 CREATE OR REPLACE FUNCTION check_customer_booking_limit()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -17,7 +18,7 @@ CREATE TRIGGER enforce_booking_limit
 BEFORE INSERT ON booking
 FOR EACH ROW EXECUTE FUNCTION check_customer_booking_limit();
 
--- Constraint: A room cannot be rented if it is already taken during the indicated date
+-- A room taken room cannot be rented
 CREATE OR REPLACE FUNCTION check_room_availability()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -40,12 +41,12 @@ CREATE TRIGGER enforce_room_availability
 BEFORE INSERT ON rental
 FOR EACH ROW EXECUTE FUNCTION check_room_availability();
 
--- Aggregation Query - Number of bookings per customer
+-- Query to see bookings by customer
 SELECT customer_id, COUNT(*) AS total_bookings
 FROM booking
 GROUP BY customer_id;
 
--- Nested query - Customers with more than 1 active booking
+-- Query to see which customers have more than 1 booking
 SELECT full_name
 FROM customer
 WHERE customer_id IN (
@@ -61,7 +62,7 @@ CREATE INDEX idx_booking_customer ON booking(customer_id);
 CREATE INDEX idx_room_price ON room(price);
 CREATE INDEX idx_employee_hotel ON employee(hotel_id);
 
--- View 1: Available rooms per area
+-- View of available rooms per area
 CREATE OR REPLACE VIEW available_rooms_per_area AS
 SELECT h.address AS area, COUNT(r.room_id) AS available_rooms
 FROM hotel h
@@ -72,7 +73,7 @@ WHERE r.room_id NOT IN (
 )
 GROUP BY h.address;
 
--- View 2: Total room capacity per hotel
+-- View of room capacity per hotel
 CREATE OR REPLACE VIEW total_room_capacity_per_hotel AS
 SELECT h.hotel_id, h.hotel_name, SUM(r.capacity) AS total_capacity
 FROM hotel h
