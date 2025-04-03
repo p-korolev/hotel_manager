@@ -1,4 +1,4 @@
-# app/routes/api_routes.py
+# All API routes using Flask
 from flask import Blueprint, request, jsonify
 from flask import render_template
 from app.config.database import get_db
@@ -14,23 +14,23 @@ def search_rooms():
     db = next(get_db())
     
     try:
-        # Parse dates
+        # Filtering dates
         check_in = datetime.fromisoformat(data.get('check_in'))
         check_out = datetime.fromisoformat(data.get('check_out'))
         
-        # Base query
+        # Query
         query = db.query(Room)
         
-        # Filter for booked rooms
+        # Filtering booked rooms
         booked_rooms = db.query(Booking.room_id).filter(
             (Booking.check_in_date < check_out) & 
             (Booking.check_out_date > check_in)
         ).all()
         
-        # Exclude booked rooms
+        # Excluding booked rooms
         query = query.filter(~Room.room_id.in_([r[0] for r in booked_rooms]))
         
-        # Additional filters
+        # Checking other constraints
         if data.get('capacity'):
             query = query.filter(Room.capacity == data['capacity'])
         
@@ -40,7 +40,7 @@ def search_rooms():
         if data.get('max_price'):
             query = query.filter(Room.price <= data['max_price'])
         
-        # Execute and return results
+        # Display filtered results
         rooms = query.all()
         return jsonify([
             {
@@ -52,6 +52,7 @@ def search_rooms():
             } for room in rooms
         ])
     
+    # Print exception if filtering errors occur
     except Exception as e:
         import traceback
         traceback.print_exc()
@@ -65,12 +66,12 @@ def create_booking():
     db = next(get_db())
     
     try:
-        # Validate customer
+        # Customer validation
         customer = db.query(Customer).get(data['customer_id'])
         if not customer:
             return jsonify({'error': 'Customer not found'}), 404
         
-        # Validate room
+        # Room validation
         room = db.query(Room).get(data['room_id'])
         if not room:
             return jsonify({'error': 'Room not found'}), 404
@@ -92,6 +93,7 @@ def create_booking():
             'message': 'Booking created successfully'
         }), 201
     
+    # Print error if booking fails
     except Exception as e:
         db.rollback()
         return jsonify({'error': str(e)}), 400
@@ -139,13 +141,8 @@ def get_hotel_chains():
     finally:
         db.close()
 
-
+# Home route, displays site html page
 @api.route('/', methods=['GET'])
 def home():
     return render_template('site.html')
-
-
-#@api.route('/')
-#def site_home():
-    #return render_template('site.html')
 

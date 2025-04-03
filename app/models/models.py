@@ -15,7 +15,6 @@ engine = create_engine(DATABASE_URL)
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-# Base class for declarative models
 Base = declarative_base()
 
 class HotelChain(Base):
@@ -41,7 +40,6 @@ class Hotel(Base):
     phone_number = Column(String(20), nullable=False)
     category = Column(Integer, nullable=False)
     
-    # Relationships
     hotel_chain = relationship("HotelChain", back_populates="hotels")
     rooms = relationship("Room", back_populates="hotel")
     employees = relationship("Employee", back_populates="hotel")
@@ -58,7 +56,6 @@ class Room(Base):
     amenities = Column(String, nullable=True)
     damages = Column(String, nullable=True)
     
-    # Relationships
     hotel = relationship("Hotel", back_populates="rooms")
     bookings = relationship("Booking", back_populates="room")
 
@@ -72,7 +69,6 @@ class Customer(Base):
     id_number = Column(String(50), unique=True, nullable=False)
     registration_date = Column(DateTime, default=datetime.utcnow)
     
-    # Relationships
     bookings = relationship("Booking", back_populates="customer")
 
 class Employee(Base):
@@ -85,7 +81,6 @@ class Employee(Base):
     ssn = Column(String(50), unique=True, nullable=False)
     role = Column(String(100), nullable=False)
     
-    # Relationships
     hotel = relationship("Hotel", back_populates="employees")
     bookings = relationship("Booking", back_populates="employee")
 
@@ -100,16 +95,14 @@ class Booking(Base):
     check_out_date = Column(DateTime, nullable=False)
     status = Column(String(50), nullable=False)
     
-    # Relationships
     customer = relationship("Customer", back_populates="bookings")
     room = relationship("Room", back_populates="bookings")
     employee = relationship("Employee", back_populates="bookings")
 
-# Function to create all tables
 def create_tables():
     Base.metadata.create_all(bind=engine)
 
-# Function to get database session
+# Get database session
 def get_db():
     db = SessionLocal()
     try:

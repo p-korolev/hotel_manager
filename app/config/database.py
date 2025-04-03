@@ -1,3 +1,6 @@
+# Copy of models.py
+# For testing purposes; can ignore
+
 import os
 from sqlalchemy import create_engine, Column, Integer, String, DateTime, Float, Boolean, ForeignKey
 from sqlalchemy.ext.declarative import declarative_base
@@ -11,13 +14,12 @@ load_dotenv()
 
 # Database configuration
 DATABASE_URL = Config.SQLALCHEMY_DATABASE_URI
-print("🔍 FINAL DATABASE_URL used by create_engine():", DATABASE_URL)
+print("FINAL DATABASE_URL used by create_engine():", DATABASE_URL)
 
-# Create SQLAlchemy engine
+# Create engine
 engine = create_engine(DATABASE_URL, echo=True)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-# Base class for declarative models
 Base = declarative_base()
 
 class HotelChain(Base):
@@ -29,7 +31,7 @@ class HotelChain(Base):
     email = Column(String(100), nullable=False)
     phone_number = Column(String(20), nullable=False)
     
-    # Relationship
+    # Relationships
     hotels = relationship("Hotel", back_populates="chain")
 
 class Hotel(Base):
@@ -43,7 +45,6 @@ class Hotel(Base):
     phone_number = Column(String(20), nullable=False)
     category = Column(Integer, nullable=False)
     
-    # Relationships
     chain = relationship("HotelChain", back_populates="hotel")
     rooms = relationship("Room", back_populates="hotel")
     employees = relationship("Employee", back_populates="hotel")
@@ -60,7 +61,6 @@ class Room(Base):
     amenities = Column(String, nullable=True)
     damages = Column(String, nullable=True)
     
-    # Relationships
     hotel = relationship("Hotel", back_populates="room")
     bookings = relationship("Booking", back_populates="room")
 
@@ -74,7 +74,6 @@ class Customer(Base):
     id_number = Column(String(50), unique=True, nullable=False)
     registration_date = Column(DateTime, default=datetime.utcnow)
     
-    # Relationships
     bookings = relationship("Booking", back_populates="customer")
 
 class Employee(Base):
@@ -87,7 +86,6 @@ class Employee(Base):
     ssn = Column(String(50), unique=True, nullable=False)
     role = Column(String(100), nullable=False)
     
-    # Relationships
     hotel = relationship("Hotel", back_populates="employee")
     bookings = relationship("Booking", back_populates="employee")
 
@@ -101,17 +99,15 @@ class Booking(Base):
     check_in_date = Column(DateTime, nullable=False)
     check_out_date = Column(DateTime, nullable=False)
     status = Column(String(50), nullable=False)
-    
-    # Relationships
+  
     customer = relationship("Customer", back_populates="booking")
     room = relationship("Room", back_populates="booking")
     employee = relationship("Employee", back_populates="booking")
 
-# Function to create all tables
 def create_tables():
     Base.metadata.create_all(bind=engine)
 
-# Function to get database session
+# Get database session
 def get_db():
     db = SessionLocal()
     try:

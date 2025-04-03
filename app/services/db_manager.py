@@ -1,3 +1,6 @@
+# This is essentially a copy of connection.py
+# For testing; ignore
+
 import os
 from sqlalchemy import create_engine, Column, Integer, String, Date, Float, Boolean, ARRAY, Text
 from sqlalchemy.ext.declarative import declarative_base
@@ -12,7 +15,6 @@ load_dotenv()
 from app.config.config import Config
 DATABASE_URL = Config.SQLALCHEMY_DATABASE_URI
 engine = create_engine(DATABASE_URL)
-
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
@@ -23,7 +25,7 @@ class DatabaseManager:
     def add_hotel_chain(self, name, address, email, phone):
         try:
             from sqlalchemy.orm.exc import IntegrityError
-            from app.models.models import HotelChain  # You'll need to create models.py
+            from app.models.models import HotelChain
 
             new_chain = HotelChain(
                 chain_name=name,
@@ -36,14 +38,14 @@ class DatabaseManager:
             return new_chain.chain_id
         except IntegrityError:
             self.session.rollback()
-            raise ValueError("Hotel chain could not be added due to data constraints")
+            raise ValueError("Hotel chain could not be added due to data constraints.")
 
     def search_available_rooms(self, check_in, check_out, capacity=None, view_type=None, max_price=None):
         from app.models.models import Room, Rental, Hotel
 
         query = self.session.query(Room).join(Hotel)
         
-        # Exclude rooms with existing rentals during the specified period
+        # Excluding unavailable rooms
         subquery = self.session.query(Rental.room_id).filter(
             (Rental.check_in_date < check_out) & 
             (Rental.check_out_date > check_in)
@@ -51,7 +53,7 @@ class DatabaseManager:
 
         query = query.filter(~Room.room_id.in_(subquery))
 
-        # Optional filters
+        # Additional filtering
         if capacity:
             query = query.filter(Room.capacity == capacity)
         if view_type:
@@ -78,11 +80,10 @@ class DatabaseManager:
     def close(self):
         self.session.close()
 
-# Example usage
+# For testing; ignore
 if __name__ == '__main__':
     db = DatabaseManager()
     
-    # Example: Search available rooms
     available_rooms = db.search_available_rooms(
         check_in=datetime.now().date(),
         check_out=datetime.now().date() + timedelta(days=3),
@@ -90,10 +91,8 @@ if __name__ == '__main__':
         view_type='Sea View',
         max_price=200.00
     )
-    
     for room in available_rooms:
         print(f"Room {room.room_id}: ${room.price}, Capacity: {room.capacity}")
-    
     db.close()
 
     
