@@ -41,22 +41,6 @@ CREATE TRIGGER enforce_room_availability
 BEFORE INSERT ON rental
 FOR EACH ROW EXECUTE FUNCTION check_room_availability();
 
--- Query to see bookings by customer
-SELECT customer_id, COUNT(*) AS total_bookings
-FROM booking
-GROUP BY customer_id;
-
--- Query to see which customers have more than 1 booking
-SELECT full_name
-FROM customer
-WHERE customer_id IN (
-    SELECT customer_id
-    FROM booking
-    WHERE status = 'Pending'
-    GROUP BY customer_id
-    HAVING COUNT(*) > 1
-);
-
 -- Indexes
 CREATE INDEX idx_booking_customer ON booking(customer_id);
 CREATE INDEX idx_room_price ON room(price);
